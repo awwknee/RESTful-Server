@@ -71,7 +71,7 @@ app.get('/incidents', (req, res) => {
                 statement += `WHERE neighborhood_number IN (${neighborhood.join(", ")}) `;
                 break;
             default:
-                var limit = 100;
+                var limit = 1000;
                 if (key == 'limit') {
                     limit = req.query[key];
                 }
