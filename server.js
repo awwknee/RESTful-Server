@@ -46,7 +46,7 @@ app.get('/incidents', (req, res) => {
  
     var query = Object.keys(req.query).filter(key => ['start_date', 'end_date', 'code', 'grid', 'neighborhood', 'limit'].includes(key));
     if (!query.includes('limit')) {
-        query.push('dino')
+        query.push('limit')
     }
     query.forEach(key => {
         switch (key) {
@@ -72,8 +72,8 @@ app.get('/incidents', (req, res) => {
                 break;
             default:
                 var limit = 1000;
-                if (key == 'limit') {
-                    limit = req.query[key];
+                if (req.query['limit']) {
+                    limit = req.query['limit'];
                 }
                 statement += `ORDER BY date_time ASC LIMIT ${limit} `;
                 break;
