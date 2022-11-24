@@ -33,15 +33,7 @@ app.get('/codes', (req, res) => {
         query.forEach(key => {
             if (key.toLowerCase()==='code') {
                 var codes = req.query[key].split(',');
-                statement += `WHERE code = '${codes[0]}'`;
-                if (codes.length > 1) {
-                    for (let x=1;x<codes.length;x++) {
-                        if (x !== codes.length) {
-                            statement += ` OR `;
-                        }
-                        statement += `code = '${codes[x]}'`;
-                    }
-                }
+                statement += `WHERE code IN (${codes.join(", ")}) `;
             } 
         });
         statement += 'ORDER BY code ASC'
@@ -70,15 +62,7 @@ app.get('/neighborhoods', (req, res) => {
         query.forEach(key => {
             if (key.toLowerCase()==='id') {
                 var neighborhoods = req.query[key].split(',');
-                statement += `WHERE ID = '${neighborhoods[0]}'`;
-                if (neighborhoods.length > 1) {
-                    for (let x=1;x<neighborhoods.length;x++) {
-                        if (x !== neighborhoods.length) {
-                            statement += ` OR `;
-                        }
-                        statement += `ID = '${neighborhoods[x]}'`;
-                    }
-                }
+                statement += `WHERE ID IN (${neighborhoods.join(", ")}) `;
             } 
         });
         statement += 'ORDER BY ID ASC'
@@ -101,10 +85,10 @@ app.get('/neighborhoods', (req, res) => {
 
 // GET request handler for crime incidents
 app.get('/incidents', (req, res) => {
-    var statement = 'SELECT case_number, strftime("%Y-%m-%d", date_time) as date, strftime("%H:%M:%S", date_time) as time, code, incident, police_grid, neighborhood_number, block FROM Incidents ';
-    
-    var query = Object.keys(req.query).filter(key => ['start_date', 'end_date', 'code', 'grid', 'neighborhood', 'limit'].includes(key));
 
+    var statement = 'SELECT case_number, strftime("%Y-%m-%d", date_time) as date, strftime("%H:%M:%S", date_time) as time, code, incident, police_grid, neighborhood_number, block FROM Incidents ';
+ 
+    var query = Object.keys(req.query).filter(key => ['start_date', 'end_date', 'code', 'grid', 'neighborhood', 'limit'].includes(key));
     if (!query.includes('limit')) {
         query.push('limit')
     }
@@ -112,47 +96,23 @@ app.get('/incidents', (req, res) => {
         switch (key) {
             case 'start_date':
                 var start_date = req.query[key];
-                statement += `WHERE date >= '${start_date}'`;
+                statement += `WHERE date >= (${start_date}) `;
                 break;
             case 'end_date':
                 var end_date = req.query[key];
-                statement += `WHERE date <= '${end_date}'`;
+                statement += `WHERE date <= (${end_date}) `;
                 break;
             case 'code':
-                var codes = req.query[key].split(',');
-                statement += `WHERE code = '${codes[0]}'`;
-                if (codes.length > 1) {
-                    for (let x=1;x<codes.length;x++) {
-                        if (x !== codes.length) {
-                            statement += ` OR `;
-                        }
-                        statement += `code = '${codes[x]}'`;
-                    }
-                }
+                var code = req.query[key].split(',');
+                statement += `WHERE code IN (${code.join(", ")}) `;
                 break;
             case 'grid':
-                var grids = req.query[key].split(',');
-                statement += `WHERE police_grid = '${grids[0]}'`;
-                if (grids.length > 1) {
-                    for(let x=1;x<grids.length;x++){
-                        if(x !== grids.length) {
-                            statement += ` OR `;
-                        }
-                        statement += `police_grid = '${grids[x]}'`;
-                    }
-                }
+                var grid = req.query[key].split(',');
+                statement += `WHERE police_grid IN (${grid.join(", ")}) `;
                 break;
             case 'neighborhood':
-                var neighborhoods = req.query[key].split(',');
-                statement += `WHERE neighborhood_number = '${neighborhoods[0]}'`;
-                if(neighborhoods.length >1){
-                    for(let x=1;x<neighborhoods.length;x++){
-                        if(x !== neighborhoods.length){
-                            statement += ` OR `;
-                        }
-                        statement += `neighborhood_number = '${neighborhoods[x]}'`
-                    }
-                }
+                var neighborhood = req.query[key].split(',');
+                statement += `WHERE neighborhood_number IN (${neighborhood.join(", ")}) `;
                 break;
             default:
                 var limit = 1000;
@@ -164,6 +124,7 @@ app.get('/incidents', (req, res) => {
         }
 
     });
+
     databaseSelect(statement, {})
     .then(rows => {
         res.status(200).type('json').send(rows);
