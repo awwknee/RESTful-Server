@@ -27,32 +27,34 @@ let db = new sqlite3.Database(db_filename, sqlite3.OPEN_READWRITE, (err) => {
 
 // GET request handler for crime codes
 app.get('/codes', (req, res) => {
-    console.log(req.query); // query object (key-value pairs after the ? in the url)
     var query = Object.keys(req.query).filter(key => ['code'].includes(key));
-    var statement = 'SELECT code, incident_type as type FROM Codes ';
-    query.forEach(key => {
-        console.log(key);
-        if (key.toLowerCase()==='code') {
-            var codes = req.query[key].split(',');
-            statement += `WHERE code = '${codes[0]}'`;
-            if (codes.length > 1) {
-                for (let x=1;x<codes.length;x++) {
-                    if (x !== codes.length) {
-                        statement += ` OR `;
+    if (query.length > 0){
+        var statement = 'SELECT code, incident_type as type FROM Codes ';
+        query.forEach(key => {
+            if (key.toLowerCase()==='code') {
+                var codes = req.query[key].split(',');
+                statement += `WHERE code = '${codes[0]}'`;
+                if (codes.length > 1) {
+                    for (let x=1;x<codes.length;x++) {
+                        if (x !== codes.length) {
+                            statement += ` OR `;
+                        }
+                        statement += `code = '${codes[x]}'`;
                     }
-                    statement += `code = '${codes[x]}'`;
                 }
-            }
-        }
-    });
-    statement += 'ORDER BY code ASC'
-    console.log(statement);
+            } 
+        });
+        statement += 'ORDER BY code ASC'
+    }
     databaseSelect(statement, {})
     .then(rows => {
+        if(rows.length==0) {
+            throw Error //throw error because rows is empty, meaning not in database
+        }
         res.status(200).type('json').send(rows);
     })
     .catch(err => {
-        res.status(401).type('json').send(err + ' you silly goose.');
+        res.status(401).type('json').send('Unable to find the requested information you silly goose.');
     })
 });
 
@@ -79,7 +81,6 @@ app.get('/incidents', (req, res) => {
     if (!query.includes('limit')) {
         query.push('limit')
     }
-
     query.forEach(key => {
         switch (key) {
             case 'start_date':
@@ -136,7 +137,6 @@ app.get('/incidents', (req, res) => {
         }
 
     });
-
     databaseSelect(statement, {})
     .then(rows => {
         res.status(200).type('json').send(rows);
@@ -159,6 +159,9 @@ app.delete('/new-incident', (req, res) => {
     res.status(200).type('txt').send('OK'); // <-- you may need to change this
 });
 
+app.use((req, res) => {
+    res.status(401).type('json').send(`Unable to find ${req.originalUrl}`);  
+});
 
 // Create Promise for SQLite3 database SELECT query 
 function databaseSelect(query, params) {
