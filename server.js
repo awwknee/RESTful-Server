@@ -28,7 +28,25 @@ let db = new sqlite3.Database(db_filename, sqlite3.OPEN_READWRITE, (err) => {
 // GET request handler for crime codes
 app.get('/codes', (req, res) => {
     console.log(req.query); // query object (key-value pairs after the ? in the url)
-    var statement = 'SELECT code, incident_type as type FROM Codes ORDER BY code ASC';
+    var query = Object.keys(req.query).filter(key => ['code'].includes(key));
+    var statement = 'SELECT code, incident_type as type FROM Codes ';
+    query.forEach(key => {
+        console.log(key);
+        if (key.toLowerCase()==='code') {
+            var codes = req.query[key].split(',');
+            statement += `WHERE code = '${codes[0]}'`;
+            if (codes.length > 1) {
+                for (let x=1;x<codes.length;x++) {
+                    if (x !== codes.length) {
+                        statement += ` OR `;
+                    }
+                    statement += `code = '${codes[x]}'`;
+                }
+            }
+        }
+    });
+    statement += 'ORDER BY code ASC'
+    console.log(statement);
     databaseSelect(statement, {})
     .then(rows => {
         res.status(200).type('json').send(rows);
