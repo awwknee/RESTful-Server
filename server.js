@@ -45,6 +45,10 @@ app.get('/codes', (req, res) => {
             } 
         });
         statement += 'ORDER BY code ASC'
+    } else if (req.url.toLowerCase() === '/codes'){
+        var statement = 'SELECT code, incident_type as type FROM Codes ORDER BY code ASC'
+    } else {
+        var statement = ''
     }
     databaseSelect(statement, {})
     .then(rows => {
@@ -60,20 +64,43 @@ app.get('/codes', (req, res) => {
 
 // GET request handler for neighborhoods
 app.get('/neighborhoods', (req, res) => {
-    console.log(req.query); // query object (key-value pairs after the ? in the url)
-    var statement = 'SELECT neighborhood_number as ID, neighborhood_name as Name FROM NEIGHBORHOODS ORDER BY ID ASC';
+    var query = Object.keys(req.query).filter(key => ['id'].includes(key));
+    if (query.length > 0){
+        var statement = 'SELECT neighborhood_number as ID, neighborhood_name as Name FROM NEIGHBORHOODS ';
+        query.forEach(key => {
+            if (key.toLowerCase()==='id') {
+                var neighborhoods = req.query[key].split(',');
+                statement += `WHERE ID = '${neighborhoods[0]}'`;
+                if (neighborhoods.length > 1) {
+                    for (let x=1;x<neighborhoods.length;x++) {
+                        if (x !== neighborhoods.length) {
+                            statement += ` OR `;
+                        }
+                        statement += `ID = '${neighborhoods[x]}'`;
+                    }
+                }
+            } 
+        });
+        statement += 'ORDER BY ID ASC'
+    } else if (req.url.toLowerCase() === '/neighborhoods'){
+        var statement = 'SELECT neighborhood_number as ID, neighborhood_name as Name FROM NEIGHBORHOODS ORDER BY ID ASC'
+    } else {
+        var statement = ''
+    }
     databaseSelect(statement, {})
     .then(rows => {
+        if(rows.length==0) {
+            throw Error //throw error because rows is empty, meaning not in database
+        }
         res.status(200).type('json').send(rows);
     })
     .catch(err => {
-        res.status(401).type('json').send(err + ' you silly goose.');
+        res.status(401).type('json').send('Unable to find the requested information you silly goose.');
     })
 });
 
 // GET request handler for crime incidents
 app.get('/incidents', (req, res) => {
-    console.log(req.query);
     var statement = 'SELECT case_number, strftime("%Y-%m-%d", date_time) as date, strftime("%H:%M:%S", date_time) as time, code, incident, police_grid, neighborhood_number, block FROM Incidents ';
     
     var query = Object.keys(req.query).filter(key => ['start_date', 'end_date', 'code', 'grid', 'neighborhood', 'limit'].includes(key));
