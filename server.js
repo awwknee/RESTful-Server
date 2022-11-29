@@ -135,16 +135,44 @@ app.get('/incidents', (req, res) => {
 
 // PUT request handler for new crime incident
 app.put('/new-incident', (req, res) => {
-    console.log(req.body); // uploaded data
-
-    res.status(200).type('txt').send('OK'); // <-- you may need to change this
+    body=req.body;
+    statement = `SELECT case_number FROM Incidents WHERE case_number = "${body.case_number}"`
+    databaseSelect(statement, {})
+    .then(rows => {
+        if (rows.length === 0) {
+            statement = `INSERT INTO Incidents VALUES (${body.case_number}, "${body.date}T${body.time}", ${body.code}, "${body.incident}", ${body.police_grid}, ${body.neighborhood_number}, "${body.block}")`;
+            databaseRun(statement,{})
+            .then(res.status(200).type('txt').send(`Added case number ${body.case_number} to the database.`))
+        } else {
+            throw Error;
+        }
+    })
+    .catch(err => {
+        res.status(500).type('txt').send(`Unable to add case number ${body.case_number} to the database.`)
+    });
 });
+//USE THIS FOR ADDING NEW INCIDENT TESTING
+//{"case_number": 94171569, "date": "2014-08-13", "time": "05:00:00", "code":641, "incident":"Theft", "police_grid":33,"neighborhood_number":5,"block":"132X WESTMINSTER ST"}
+
+//USE THIS FOR REMOVING INCIDENT TESTING
+//{"case_number": 94171569}
 
 // DELETE request handler for new crime incident
-app.delete('/new-incident', (req, res) => {
-    console.log(req.body); // uploaded data
-
-    res.status(200).type('txt').send('OK'); // <-- you may need to change this
+app.delete('/remove-incident', (req, res) => {
+    statement = `SELECT case_number FROM Incidents WHERE case_number = "${req.body.case_number}"`
+    databaseSelect(statement, {})
+    .then(rows => {
+        if (rows.length !== 0) {
+            statement = `DELETE FROM Incidents WHERE case_number = "${req.body.case_number}"`
+            databaseRun(statement,{})
+            .then(res.status(200).type('txt').send(`Removed case number ${req.body.case_number} from the database.`))
+        } else {
+            throw Error;
+        }
+    })
+    .catch(err => {
+        res.status(500).type('txt').send(`Unable to remove case number ${req.body.case_number} from the database.`)
+    });
 });
 
 app.use((req, res) => {
