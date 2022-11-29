@@ -152,10 +152,10 @@ app.put('/new-incident', (req, res) => {
     });
 });
 //USE THIS FOR ADDING NEW INCIDENT TESTING
-//{"case_number": 94171569, "date": "2014-08-13", "time": "05:00:00", "code":641, "incident":"Theft", "police_grid":33,"neighborhood_number":5,"block":"132X WESTMINSTER ST"}
+//curl -X PUT -H "Content-Type: application/json" -d '{"case_number": 94171569, "date": "2014-08-13", "time": "05:00:00", "code":641, "incident":"Theft", "police_grid":33,"neighborhood_number":5,"block":"132X WESTMINSTER ST"}' localhost:8000/new-incident
 
 //USE THIS FOR REMOVING INCIDENT TESTING
-//{"case_number": 94171569}
+//curl -X DELETE -H "Content-Type: application/json" -d '{"case_number":94171569}' localhost:8000/remove-incident;  
 
 // DELETE request handler for new crime incident
 app.delete('/remove-incident', (req, res) => {
