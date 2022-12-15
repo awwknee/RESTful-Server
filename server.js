@@ -5,14 +5,14 @@ let path = require('path');
 // NPM modules
 let express = require('express');
 let sqlite3 = require('sqlite3');
-
+const cors = require('cors');
 
 let db_filename = path.join(__dirname, 'db', 'stpaul_crime.sqlite3');
 
 let app = express();
-let port = 8000;
-
+let port = 8080;
 app.use(express.json());
+app.use(cors());
 
 // Open SQLite3 database (in read-only mode)
 let db = new sqlite3.Database(db_filename, sqlite3.OPEN_READWRITE, (err) => {
@@ -23,6 +23,7 @@ let db = new sqlite3.Database(db_filename, sqlite3.OPEN_READWRITE, (err) => {
         console.log('Now connected to ' + path.basename(db_filename));
     }
 });
+
 
 
 // GET request handler for crime codes
