@@ -37,9 +37,9 @@ app.get('/codes', (req, res) => {
                 statement += `WHERE code IN (${codes.join(", ")}) `;
             } 
         });
-        statement += 'ORDER BY code ASC'
+        statement += 'ORDER BY code DESC'
     } else if (req.url.toLowerCase() === '/codes'){
-        var statement = 'SELECT code, incident_type as type FROM Codes ORDER BY code ASC'
+        var statement = 'SELECT code, incident_type as type FROM Codes ORDER BY code DESC'
     } else {
         var statement = ''
     }
@@ -66,9 +66,9 @@ app.get('/neighborhoods', (req, res) => {
                 statement += `WHERE ID IN (${neighborhoods.join(", ")}) `;
             } 
         });
-        statement += 'ORDER BY ID ASC'
+        statement += 'ORDER BY ID DESC'
     } else if (req.url.toLowerCase() === '/neighborhoods'){
-        var statement = 'SELECT neighborhood_number as ID, neighborhood_name as Name FROM NEIGHBORHOODS ORDER BY ID ASC'
+        var statement = 'SELECT neighborhood_number as ID, neighborhood_name as Name FROM NEIGHBORHOODS ORDER BY ID DESC'
     } else {
         var statement = ''
     }
@@ -123,7 +123,7 @@ app.get('/incidents', (req, res) => {
 
     if (limit == 0) limit = 1000;
     
-    statement += ` ORDER BY date_time ASC LIMIT ${limit} `;
+    statement += ` ORDER BY date_time DESC LIMIT ${limit} `;
 
     databaseSelect(statement, {})
     .then(rows => {
